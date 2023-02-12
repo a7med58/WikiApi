@@ -1,8 +1,15 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 export default function App() {
-  const [term, setTerm] = useState("");
+  const [term, setTerm] = useState("Egypt");
+  const [searchApi, setSearchAPI] = useState("");
   const [result, setResult] = useState([]);
+  useEffect(() => {
+    const searchRules = setTimeout(() => {
+      setSearchAPI(term);
+    }, 1500);
+    return () => clearTimeout(searchRules);
+  }, [term]);
   useEffect(() => {
     const search = async () => {
       const respond = await axios.get("https://en.wikipedia.org/w/api.php", {
@@ -11,24 +18,25 @@ export default function App() {
           list: "search",
           origin: "*",
           format: "json",
-          srsearch: term,
+          srsearch: searchApi,
         },
       });
       setResult(respond.data.query.search);
     };
-    if (term) {
-      search();
-    }
-  }, [term]);
-  const fetchResult= result.map ((el)=>{
+    search();
+  }, [searchApi]);
+
+  const fetchResult = result.map((el) => {
     return (
-      <tr>
-        <th scope="row" key={el.pageid}>1</th>
+      <tr key={el.pageid}>
+        <td>1</td>
         <td>{el.title}</td>
-        <td><span dangerouslySetInnerHTML={{"__html": el.snippet}}/></td>
+        <td>
+          <span dangerouslySetInnerHTML={{ __html: el.snippet }} />
+        </td>
       </tr>
     );
-  })
+  });
   return (
     <div className="container">
       <div className="row">
