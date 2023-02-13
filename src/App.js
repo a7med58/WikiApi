@@ -1,15 +1,12 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import usePevState from "./hooks/usePevState";
 export default function App() {
-  const [term, setTerm] = useState("Egypt");
-  const [searchApi, setSearchAPI] = useState("");
+  const [term, setTerm] = useState("React");
   const [result, setResult] = useState([]);
-  useEffect(() => {
-    const searchRules = setTimeout(() => {
-      setSearchAPI(term);
-    }, 1500);
-    return () => clearTimeout(searchRules);
-  }, [term]);
+
+  const prevTerm = usePevState(term);
+
   useEffect(() => {
     const search = async () => {
       const respond = await axios.get("https://en.wikipedia.org/w/api.php", {
@@ -18,13 +15,27 @@ export default function App() {
           list: "search",
           origin: "*",
           format: "json",
-          srsearch: searchApi,
+          srsearch: term,
         },
       });
       setResult(respond.data.query.search);
     };
-    search();
-  }, [searchApi]);
+
+    if (!result.length) {
+      if (term) {
+        search();
+      }
+    } else if (prevTerm !== term) {
+      const debounsSearch = setTimeout(() => {
+        if (term) {
+          search();
+        }
+      }, 1500);
+      return () => {
+        clearTimeout(debounsSearch);
+      };
+    }
+  }, [term, result.length, prevTerm]);
 
   const fetchResult = result.map((el) => {
     return (
